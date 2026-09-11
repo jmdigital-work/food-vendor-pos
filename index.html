@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <title>QuickReceipt POS</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div>
+        <div class="brand">QuickReceipt</div>
+        <div class="store-name" id="headerStore">My Food Stall</div>
+      </div>
+      <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
+    </header>
+
+    <main>
+      <section class="view active" id="posView">
+        <div class="view-head">
+          <div>
+            <p class="eyebrow">Point of Sale</p>
+            <h1>New Order</h1>
+          </div>
+          <button class="outline-btn" id="clearOrderBtn">Clear</button>
+        </div>
+
+        <div class="category-row" id="categoryRow"></div>
+        <div class="product-grid" id="productGrid"></div>
+
+        <div class="order-card">
+          <div class="order-head">
+            <div>
+              <span class="eyebrow">Current Order</span>
+              <strong id="orderNumber">#1001</strong>
+            </div>
+            <span class="item-count" id="itemCount">0 items</span>
+          </div>
+          <div class="cart-items" id="cartItems">
+            <div class="empty-state">Tap a product to add it to the order.</div>
+          </div>
+          <div class="totals">
+            <div><span>Subtotal</span><strong id="subtotal">₱0.00</strong></div>
+            <div class="total-row"><span>Total</span><strong id="total">₱0.00</strong></div>
+          </div>
+          <button class="primary-btn large" id="checkoutBtn" disabled>Proceed to Payment</button>
+        </div>
+      </section>
+
+      <section class="view" id="transactionsView">
+        <div class="view-head">
+          <div>
+            <p class="eyebrow">Sales</p>
+            <h1>Transactions</h1>
+          </div>
+          <button class="outline-btn" id="exportBtn">Export</button>
+        </div>
+        <div class="stats">
+          <div class="stat-card"><span>Today</span><strong id="todaySales">₱0.00</strong></div>
+          <div class="stat-card"><span>Orders</span><strong id="todayOrders">0</strong></div>
+        </div>
+        <div class="transaction-list" id="transactionList"></div>
+      </section>
+
+      <section class="view" id="productsView">
+        <div class="view-head">
+          <div>
+            <p class="eyebrow">Catalog</p>
+            <h1>Products</h1>
+          </div>
+          <button class="primary-btn" id="addProductBtn">+ Product</button>
+        </div>
+        <div class="product-admin-list" id="productAdminList"></div>
+      </section>
+
+      <section class="view" id="settingsView">
+        <div class="view-head">
+          <div>
+            <p class="eyebrow">Store</p>
+            <h1>Settings</h1>
+          </div>
+        </div>
+        <div class="settings-card">
+          <label>Store name<input id="storeNameInput" /></label>
+          <label>Store subtitle<input id="storeSubtitleInput" /></label>
+          <label>QR Ph account / reference
+            <input id="qrAccountInput" placeholder="e.g. GCash / BPI / Maya" />
+          </label>
+          <button class="primary-btn" id="saveSettingsBtn">Save Settings</button>
+          <p class="hint">Payment is manual in this prototype. The vendor confirms that the QR Ph payment was received.</p>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-view="posView"><span>⌂</span><small>POS</small></button>
+      <button class="nav-btn" data-view="transactionsView"><span>▤</span><small>Sales</small></button>
+      <button class="nav-btn" data-view="productsView"><span>◫</span><small>Products</small></button>
+      <button class="nav-btn" data-view="settingsView"><span>⚙</span><small>Settings</small></button>
+    </nav>
+  </div>
+
+  <div class="modal hidden" id="paymentModal">
+    <div class="modal-sheet">
+      <button class="close-btn" data-close="paymentModal">×</button>
+      <p class="eyebrow">Checkout</p>
+      <h2>Payment</h2>
+      <div class="pay-total" id="payTotal">₱0.00</div>
+      <div class="payment-options">
+        <button class="payment-option selected" data-method="QR Ph">
+          <span class="pay-icon">▣</span>
+          <strong>QR Ph</strong>
+          <small>Customer pays using their bank/e-wallet</small>
+        </button>
+        <button class="payment-option" data-method="Cash">
+          <span class="pay-icon">₱</span>
+          <strong>Cash</strong>
+          <small>Vendor receives cash</small>
+        </button>
+      </div>
+      <div id="cashFields" class="cash-fields hidden">
+        <label>Cash received<input id="cashReceived" type="number" min="0" step="0.01" placeholder="0.00" /></label>
+        <div class="change-row"><span>Change</span><strong id="changeAmount">₱0.00</strong></div>
+      </div>
+      <div id="qrNote" class="notice">After the customer pays, verify the payment in your banking/e-wallet app, then tap <b>Confirm Payment</b>.</div>
+      <button class="primary-btn large" id="confirmPaymentBtn">Confirm Payment</button>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="receiptModal">
+    <div class="modal-sheet receipt-sheet">
+      <button class="close-btn" data-close="receiptModal">×</button>
+      <div class="success">✓</div>
+      <p class="eyebrow center">Payment confirmed</p>
+      <h2 class="center">Receipt Ready</h2>
+      <div class="receipt-qr-wrap">
+        <div class="fake-qr" id="fakeQr"></div>
+      </div>
+      <p class="scan-text">Customer scans this QR to view the digital receipt.</p>
+      <div class="receipt-preview" id="receiptPreview"></div>
+      <div class="modal-actions">
+        <button class="outline-btn" id="newOrderBtn">New Order</button>
+        <button class="primary-btn" id="viewReceiptBtn">Open Receipt</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="customerReceiptModal">
+    <div class="modal-sheet receipt-sheet customer-receipt">
+      <button class="close-btn" data-close="customerReceiptModal">×</button>
+      <div id="customerReceipt"></div>
+      <button class="primary-btn large" id="printReceiptBtn">Print / Save Receipt</button>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="productModal">
+    <div class="modal-sheet">
+      <button class="close-btn" data-close="productModal">×</button>
+      <p class="eyebrow">Catalog</p>
+      <h2>Add Product</h2>
+      <label>Name<input id="newProductName" placeholder="e.g. Chicken Burger" /></label>
+      <label>Price<input id="newProductPrice" type="number" min="0" step="0.01" placeholder="99" /></label>
+      <label>Category<input id="newProductCategory" placeholder="e.g. Meals" /></label>
+      <button class="primary-btn large" id="saveProductBtn">Add Product</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
